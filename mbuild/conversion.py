@@ -888,9 +888,9 @@ def to_parmed(compound,
         mbuild Compound that need to be converted.
     box : mb.Box, optional, default=None
         Box information to be used when converting to a `Structure`.
-        If 'None' and the box attribute is set, the box is used with
-        0.25nm buffers at each face to avoid overlapping atoms. Otherwise
-        the boundingbox is used with the same 0.25nm buffers.
+        If 'None' and the box attribute is set, the box is used.
+        Otherwise the boundingbox is used with 0.25nm buffers at each
+        face to avoid overlapping atoms.
     title : str, optional, default=compound.name
         Title/name of the ParmEd Structure
     residues : str of list of str
@@ -1012,8 +1012,13 @@ def to_parmed(compound,
             box = deepcopy(compound.box)
         else:
             box = deepcopy(compound.boundingbox)
-        box.maxs += 0.25
-        box.mins -= 0.25
+            for dim,val in enumerate(compound.periodicity):
+                if val:
+                    box.maxs[dim] = val
+                    box.mins[dim] = 0.0
+                else:
+                    box.maxs[dim] += 0.25
+                    box.mins[dim] -= 0.25
 
     box_vector = np.empty(6)
     if box.angles is not None:
